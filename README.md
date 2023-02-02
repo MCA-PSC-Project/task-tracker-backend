@@ -28,5 +28,8 @@ backend api for task tracker app
 
 `flask run`
 
+### launch flask web server without autoreloading
+
+`flask run --no-reload`
 
 
