@@ -8,6 +8,10 @@ create type "product__type" as enum ('grocery', 'stationery', 'electronics', 'ot
 create type "theme__type" as enum ('color', 'image', 'none');
 create type "mode__type" as enum ('white', 'dark');
 create type "top__task__type" as enum ('in-progress', 'completed', 'priority');
+create type "event__type" as enum ('birthday', 'marriage-anniversery', 'death-anniversery','holiday','conference', 'others');
+create type "item__type" as enum ('milk', 'water', 'newspaper','clothes', 'others');
+
+
 -----------------------TABLES-------------------------------------------
 create table "media"(
 	"id" int primary KEY,
@@ -110,5 +114,43 @@ create table "users_settings"(
 	"mode" mode__type DEFAULT 'white',
 	FOREIGN KEY("user_id") references "users"("id"),
 	FOREIGN KEY("background_image_id") references "media"("id")
+);
+
+
+create table "event"(
+	"id" serial primary KEY,
+	"name" varchar, 
+	"user_id" integer,
+	"added_at" timestamp not null,
+	"updated_at" timestamp DEFAULT null,
+	"event_type" event__type,
+	"event_date" timestamp not null,
+	"event_end_date" timestamp DEFAULT null,
+	"notify" boolean DEFAULT true,
+	"repeat" boolean DEFAULT false,
+	FOREIGN KEY("user_id") references "users"("id")
+);
+
+
+
+create table "bills"(
+	"id" serial primary KEY, 
+	"user_id" integer,
+	"added_at" timestamp not null,
+	"updated_at" timestamp DEFAULT null,
+	"rate" float not null,
+	"quantity" float not null,
+	"item_type" item__type,
+	"paid" boolean DEFAULT false,
+	"paid_at" timestamp DEFAULT null,
+	FOREIGN KEY("user_id") references "users"("id")
+);
+
+create table "monthly_bills"(
+	"id" serial primary KEY, 
+	"user_id" integer,
+	"cost" float not null,
+	"item_type" item__type,
+	FOREIGN KEY("user_id") references "users"("id")
 );
 end;
