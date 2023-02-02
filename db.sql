@@ -8,10 +8,21 @@ create type "product__type" as enum ('grocery', 'stationery', 'electronics', 'ot
 create type "theme__type" as enum ('color', 'image', 'none');
 create type "mode__type" as enum ('white', 'dark');
 create type "top__task__type" as enum ('in-progress', 'completed', 'priority');
-create type "event__type" as enum ('birthday', 'marriage-anniversery', 'death-anniversery','holiday','conference', 'others');
-create type "item__type" as enum ('milk', 'water', 'newspaper','clothes', 'others');
-
-
+create type "event__type" as enum (
+	'birthday',
+	'marriage-anniversery',
+	'death-anniversery',
+	'holiday',
+	'conference',
+	'other'
+);
+create type "item__type" as enum (
+	'milk',
+	'water',
+	'newspaper',
+	'clothes',
+	'other'
+);
 -----------------------TABLES-------------------------------------------
 create table "media"(
 	"id" int primary KEY,
@@ -31,7 +42,8 @@ create table "users"(
 	"updated_at" timestamp DEFAULT null,
 	"dp_id" int,
 	"trash" boolean DEFAULT false,
-	FOREIGN KEY("dp_id") references "media"("id")
+	FOREIGN KEY("dp_id") references "media"("id") ON DELETE
+	SET NULL
 );
 create table "lists"(
 	"id" serial PRIMARY KEY,
@@ -39,7 +51,7 @@ create table "lists"(
 	"name" varchar not null,
 	"added_at" timestamp not null,
 	"updated_at" timestamp DEFAULT null,
-	FOREIGN KEY("user_id") references "users"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
 create table "tasks"(
 	"id" serial primary KEY,
@@ -58,8 +70,8 @@ create table "tasks"(
 	"repeat" boolean DEFAULT false,
 	"priority" boolean DEFAULT false,
 	"list_id" integer,
-	FOREIGN KEY("user_id") references "users"("id"),
-	FOREIGN KEY("list_id") references "lists"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
+	FOREIGN KEY("list_id") references "lists"("id") ON DELETE CASCADE
 );
 create table "subtasks"(
 	"id" serial primary KEY,
@@ -78,8 +90,8 @@ create table "subtasks"(
 	"notify" boolean DEFAULT true,
 	"repeat" boolean DEFAULT false,
 	"priority" boolean DEFAULT false,
-	FOREIGN KEY("user_id") references "users"("id"),
-	FOREIGN KEY("task_id") references "tasks"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
+	FOREIGN KEY("task_id") references "tasks"("id") ON DELETE CASCADE
 );
 create table "assigned_tasks"(
 	"assigner_user_id" integer,
@@ -87,9 +99,11 @@ create table "assigned_tasks"(
 	"task_id" integer,
 	"assigned_at" timestamp not null,
 	PRIMARY KEY("assignee_user_id", "task_id"),
-	FOREIGN KEY("assigner_user_id") references "users"("id"),
-	FOREIGN KEY("assignee_user_id") references "users"("id"),
-	FOREIGN KEY("task_id") references "tasks"("id")
+	FOREIGN KEY("assigner_user_id") references "users"("id") ON DELETE
+	SET NULL,
+		FOREIGN KEY("assignee_user_id") references "users"("id") ON DELETE
+	SET NULL,
+		FOREIGN KEY("task_id") references "tasks"("id") ON DELETE CASCADE
 );
 create table "basket"(
 	"id" serial PRIMARY KEY,
@@ -101,7 +115,7 @@ create table "basket"(
 	"completed_at" timestamp DEFAULT null,
 	"product_type" product__type,
 	"repeat" boolean DEFAULT false,
-	FOREIGN KEY("user_id") references "users"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
 create table "users_settings"(
 	"user_id" integer,
@@ -112,14 +126,13 @@ create table "users_settings"(
 	"top_task_type" top__task__type DEFAULT 'in-progress',
 	"notify" boolean DEFAULT true,
 	"mode" mode__type DEFAULT 'white',
-	FOREIGN KEY("user_id") references "users"("id"),
-	FOREIGN KEY("background_image_id") references "media"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
+	FOREIGN KEY("background_image_id") references "media"("id") ON DELETE
+	SET NULL
 );
-
-
-create table "event"(
+create table "events"(
 	"id" serial primary KEY,
-	"name" varchar, 
+	"name" varchar,
 	"user_id" integer,
 	"added_at" timestamp not null,
 	"updated_at" timestamp DEFAULT null,
@@ -128,13 +141,10 @@ create table "event"(
 	"event_end_date" timestamp DEFAULT null,
 	"notify" boolean DEFAULT true,
 	"repeat" boolean DEFAULT false,
-	FOREIGN KEY("user_id") references "users"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-
-
-
 create table "bills"(
-	"id" serial primary KEY, 
+	"id" serial primary KEY,
 	"user_id" integer,
 	"added_at" timestamp not null,
 	"updated_at" timestamp DEFAULT null,
@@ -143,14 +153,16 @@ create table "bills"(
 	"item_type" item__type,
 	"paid" boolean DEFAULT false,
 	"paid_at" timestamp DEFAULT null,
-	FOREIGN KEY("user_id") references "users"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-
 create table "monthly_bills"(
-	"id" serial primary KEY, 
+	"id" serial primary KEY,
 	"user_id" integer,
 	"cost" float not null,
 	"item_type" item__type,
-	FOREIGN KEY("user_id") references "users"("id")
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
+----- Indexes -----
+CREATE INDEX ON "users" ("email");
+CREATE INDEX ON "users" ("phone");
 end;
