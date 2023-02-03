@@ -6,6 +6,7 @@ from flask_restful import Api
 # local imports
 from app.config import app_config
 from app.resources.user import User
+from app.resources.list import List
 
 
 # db_conn = psycopg2.connect()
@@ -28,10 +29,13 @@ def create_app(config_name):
     app.logger.debug('DATABASE_URI=%s ' % app.config['DATABASE_URI'])
     app.logger.debug('SECRET=%s ' % app.config['SECRET'])
 
+    global db_conn
     db_conn = psycopg2.connect(app.config['DATABASE_URI'])
 
 
     # api.add_resource(User, '/users', '/users/<string:id>')
-    api.add_resource(User, '/users/profile')
+    # api.add_resource(User, '/users/profile')
+    api.add_resource(List, '/lists')
+
 
     return app
