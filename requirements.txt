@@ -3,3 +3,4 @@ python-dotenv
 psycopg2-binary
 flask-jwt-extended
 gunicorn
+flask-restful
