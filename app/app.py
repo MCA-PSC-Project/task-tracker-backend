@@ -37,9 +37,9 @@ def create_app(config_name):
     if db.db_conn == None:
         app.logger.fatal('Database connection error')
 
-    db.db_conn.autocommit=True
+    db.db_conn.autocommit = True
     # api.add_resource(User, '/users', '/users/<string:id>')
     # api.add_resource(User, '/users/profile')
-    api.add_resource(List, '/lists')
+    api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
     return app
