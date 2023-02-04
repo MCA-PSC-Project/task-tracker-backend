@@ -5,7 +5,8 @@ from flask_restful import Api
 
 # local imports
 from app.config import app_config
-from app.resources.user import User
+from app.resources.auth import Register, Login, Refresh
+from app.resources.user import UserProfile
 from app.resources.list import List
 
 import app.db as db
@@ -38,8 +39,10 @@ def create_app(config_name):
         app.logger.fatal('Database connection error')
 
     db.db_conn.autocommit = True
-    # api.add_resource(User, '/users', '/users/<string:id>')
-    # api.add_resource(User, '/users/profile')
+    api.add_resource(Register, '/auth/register')
+    api.add_resource(Login, '/auth/login')
+    api.add_resource(Refresh, '/auth/refresh')
+    api.add_resource(UserProfile, '/users/profile')
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
     return app

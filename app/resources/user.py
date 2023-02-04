@@ -1,12 +1,9 @@
 from flask_restful import Resource
 
 
-class User(Resource):
+class UserProfile(Resource):
     def get(self):
         return {"user": "prashant"}
-
-    def post(self):
-        pass
 
     def put(self):
         pass
