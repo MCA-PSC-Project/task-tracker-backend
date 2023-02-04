@@ -8,6 +8,7 @@ from app.config import app_config
 from app.resources.user import User
 from app.resources.list import List
 
+import app.db as db
 
 # db_conn = psycopg2.connect()
 # app.logger.debug('DATABASE_URI=%s ', app_configDATABASE_URI)
@@ -17,6 +18,7 @@ from app.resources.list import List
 # def get_index():
 #     return "Welcome to task tracker app!!!"
 
+# db_conn=None
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -29,13 +31,13 @@ def create_app(config_name):
     app.logger.debug('DATABASE_URI=%s ' % app.config['DATABASE_URI'])
     app.logger.debug('SECRET=%s ' % app.config['SECRET'])
 
-    global db_conn
-    db_conn = psycopg2.connect(app.config['DATABASE_URI'])
+    # global db_conn
+    db.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
 
+    print(db.db_conn)
 
     # api.add_resource(User, '/users', '/users/<string:id>')
     # api.add_resource(User, '/users/profile')
     api.add_resource(List, '/lists')
-
 
     return app

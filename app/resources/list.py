@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import request
 from flask_restful import Resource
 
-# from .../app import db_conn
+import app.db as db
 
 
 class List(Resource):
@@ -15,11 +15,11 @@ class List(Resource):
         user_id = None
         current_time = datetime.now()
         CREATE_LIST_RETURN_ID = 'INSERT INTO lists(user_id, name, added_at) VALUES(%s, %s, %s)'
-        with db_conn.cursor() as cursor:
+        with db.db_conn.cursor() as cursor:
             cursor.execute(CREATE_LIST_RETURN_ID,
                            (user_id, name, current_time))
-            list_id = cursor.fetchone()[0]
-        return {"id": list_id, "message": f"List {name} created."}, 201
+            # list_id = cursor.fetch_one()[0]
+        return { "message": f"List {name} created."}, 201
 
     def put(self):
         pass
