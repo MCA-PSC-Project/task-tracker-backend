@@ -1,8 +1,8 @@
 from datetime import datetime
-from flask import request
+from flask import request, abort
 from flask_restful import Resource
 import psycopg2
-import app.db as db
+import app.main as main
 
 
 class List(Resource):
@@ -14,7 +14,7 @@ class List(Resource):
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
-            cursor = db.db_conn.cursor()
+            cursor = main.db_conn.cursor()
             print("cursor object:", cursor, "\n")
 
             cursor.execute(GET_LISTS, (user_id,))
@@ -26,7 +26,7 @@ class List(Resource):
                 lists_dict['name'] = row[1]
         except (Exception, psycopg2.Error) as err:
             print(err)
-            return
+            abort(400, 'Bad Request')
         finally:
             cursor.close()
         print(lists_dict)
@@ -43,7 +43,7 @@ class List(Resource):
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
-            cursor = db.db_conn.cursor()
+            cursor = main.db_conn.cursor()
             print("cursor object:", cursor, "\n")
 
             cursor.execute(CREATE_LIST_RETURN_ID,
@@ -51,7 +51,7 @@ class List(Resource):
             list_id = cursor.fetchone()[0]
         except (Exception, psycopg2.Error) as err:
             print(err)
-            return
+            abort(400, 'Bad Request')
         finally:
             cursor.close()
         return {"message": f"List {name} created with id = {list_id}."}, 201
@@ -67,13 +67,13 @@ class List(Resource):
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
-            cursor = db.db_conn.cursor()
+            cursor = main.db_conn.cursor()
             print("cursor object:", cursor, "\n")
 
             cursor.execute(UPDATE_LIST, (name, current_time, list_id,))
         except (Exception, psycopg2.Error) as err:
             print(err)
-            return
+            abort(400, 'Bad Request')
         finally:
             cursor.close()
         return {"message": f"List {name} modified."}, 200
@@ -87,13 +87,13 @@ class List(Resource):
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
-            cursor = db.db_conn.cursor()
+            cursor = main.db_conn.cursor()
             print("cursor object:", cursor, "\n")
 
             cursor.execute(DELETE_LIST, (list_id,))
         except (Exception, psycopg2.Error) as err:
             print(err)
-            return
+            abort(400, 'Bad Request')
         finally:
             cursor.close()
         return 200

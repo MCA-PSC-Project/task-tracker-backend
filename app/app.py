@@ -2,6 +2,8 @@ import os
 import psycopg2
 from flask import Flask, request
 from flask_restful import Api
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
 
 # local imports
 from app.config import app_config
@@ -9,7 +11,7 @@ from app.resources.auth import Register, Login, Refresh
 from app.resources.user import UserProfile
 from app.resources.list import List
 
-import app.db as db
+import app.main as main
 
 # db_conn = psycopg2.connect()
 # app.logger.debug('DATABASE_URI=%s ', app_configDATABASE_URI)
@@ -33,12 +35,15 @@ def create_app(config_name):
     app.logger.debug('SECRET=%s ' % app.config['SECRET'])
 
     # global db_conn
-    db.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
+    main.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
 
-    if db.db_conn == None:
+    if main.db_conn == None:
         app.logger.fatal('Database connection error')
+    main.db_conn.autocommit = True
 
-    db.db_conn.autocommit = True
+    main.bcrypt = Bcrypt(app)
+    main.jwt = JWTManager(app)
+
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
     api.add_resource(Refresh, '/auth/refresh')

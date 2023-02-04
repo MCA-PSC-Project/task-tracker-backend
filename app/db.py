@@ -1,1 +1,0 @@
-global db_conn
