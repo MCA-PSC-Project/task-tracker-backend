@@ -34,8 +34,10 @@ def create_app(config_name):
     # global db_conn
     db.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
 
-    print(db.db_conn)
+    if db.db_conn == None:
+        app.logger.fatal('Database connection error')
 
+    db.db_conn.autocommit=True
     # api.add_resource(User, '/users', '/users/<string:id>')
     # api.add_resource(User, '/users/profile')
     api.add_resource(List, '/lists')
