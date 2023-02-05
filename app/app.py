@@ -2,7 +2,6 @@ import os
 import psycopg2
 from flask import Flask, request
 from flask_restful import Api
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 
 # local imports
@@ -41,7 +40,6 @@ def create_app(config_name):
         app.logger.fatal('Database connection error')
     main.db_conn.autocommit = True
 
-    main.bcrypt = Bcrypt(app)
     main.jwt = JWTManager(app)
 
     api.add_resource(Register, '/auth/register')

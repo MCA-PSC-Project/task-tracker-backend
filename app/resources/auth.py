@@ -3,6 +3,7 @@ from flask import request, abort
 from flask_restful import Resource
 import psycopg2
 import app.main as main
+import bcrypt
 
 
 class Register(Resource):
@@ -38,9 +39,9 @@ class Register(Resource):
             cursor.close()
 
         # user doesn't exists..now create user with hashed password
-        hashed_password = main.bcrypt.generate_password_hash(
-            password).decode('utf-8')
-        print(hashed_password)
+        hashed_password = bcrypt.hashpw(
+            password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = hashed_password.decode('utf-8')
 
         REGISTER_USER = '''INSERT INTO users(name, email, phone, password, dob, gender, added_at) 
         VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING id'''
@@ -93,12 +94,8 @@ class Login(Resource):
         finally:
             cursor.close()
 
-        print(hashed_password)
-        print(password)
         # check user's entered password's hash with db's stored hashed password
-        result = main.bcrypt.check_password_hash(hashed_password, password)
-        print(result)
-        if result == False:
+        if (bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')) == False):
             abort(400, 'Email or password not correct')
 
         # todo: generate token pair
