@@ -63,15 +63,10 @@ class Register(Resource):
             cursor.close()
 
         # todo: generate token pair
-        # access_token = jwt.create_access_token(identity=user_id)
-        # response = jsonify({'message': 'You are registered and logged in'})
-        # jwt.set_access_cookies(response, access_token)
-        # return {"message": f"User {name} created with id = {user_id}."}, 201
 
         # when authenticated, return a fresh access token and a refresh token
         # print(f_jwt)
-        access_token = f_jwt.create_access_token(
-            identity=user_id, fresh=True)
+        access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
         refresh_token = f_jwt.create_refresh_token(user_id)
         return {
             'access_token': access_token,
@@ -114,8 +109,7 @@ class Login(Resource):
             abort(400, 'Email or password not correct')
 
         # todo: generate token pair
-        access_token = f_jwt.create_access_token(
-            identity=user_id, fresh=True)
+        access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
         refresh_token = f_jwt.create_refresh_token(user_id)
         return {
             'access_token': access_token,
@@ -125,27 +119,11 @@ class Login(Resource):
 
 
 class RefreshToken(Resource):
-    # @f_jwt.jwt_refresh_token_required
+    @f_jwt.jwt_required(refresh=True)
     def post(self):
         # retrive the user's identity from the refresh token using a Flask-JWT-Extended built-in method
-        current_user = f_jwt.get_jwt_identity()
+        current_user_id = f_jwt.get_jwt_identity()
+
         # return a non-fresh token for the user
-        new_token = f_jwt.create_access_token(
-            identity=current_user, fresh=False)
+        new_token = f_jwt.create_access_token(identity=current_user_id, fresh=False)
         return {'access_token': new_token}, 200
-
-    # def post(self):
-    #     try:
-    #         exp_timestamp = jwt.get_jwt()["exp"]
-    #         now = datetime.now(timezone.utc)
-    #         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
-
-    #         response = jsonify({'message': 'You are registered and logged in'})
-    #         if target_timestamp > exp_timestamp:
-    #             access_token = jwt.create_access_token(
-    #                 identity=jwt.get_jwt_identity())
-    #             jwt.set_access_cookies(response, access_token)
-    #         return response
-    #     except (RuntimeError, KeyError):
-    #         # Case where there is not a valid JWT. Just return the original response
-    #         return response
