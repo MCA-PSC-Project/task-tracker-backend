@@ -2,11 +2,11 @@ import os
 import psycopg2
 from flask import Flask, request
 from flask_restful import Api
-from flask_jwt_extended import JWTManager
+import flask_jwt_extended
 
 # local imports
 from app.config import app_config
-from app.resources.auth import Register, Login, Refresh
+from app.resources.auth import Register, Login, RefreshToken
 from app.resources.user import UserProfile
 from app.resources.list import List
 
@@ -31,7 +31,7 @@ def create_app(config_name):
 
     app.logger.debug(app_config[config_name])
     app.logger.debug('DATABASE_URI=%s ' % app.config['DATABASE_URI'])
-    app.logger.debug('SECRET=%s ' % app.config['SECRET'])
+    app.logger.debug('JWT_SECRET_KEY=%s ' % app.config['JWT_SECRET_KEY'])
 
     # global db_conn
     main.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
@@ -40,11 +40,11 @@ def create_app(config_name):
         app.logger.fatal('Database connection error')
     main.db_conn.autocommit = True
 
-    main.jwt = JWTManager(app)
+    main.jwt = flask_jwt_extended.JWTManager(app)
 
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
-    api.add_resource(Refresh, '/auth/refresh')
+    api.add_resource(RefreshToken, '/auth/refresh')
     api.add_resource(UserProfile, '/users/profile')
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
