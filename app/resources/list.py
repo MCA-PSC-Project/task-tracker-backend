@@ -3,14 +3,18 @@ from flask import request, abort
 from flask_restful import Resource
 import psycopg2
 import app.main as main
+import flask_jwt_extended as f_jwt
 
 
 class List(Resource):
+    @f_jwt.jwt_required()
     def get(self):
-        user_id = 19
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        print("user_id=", user_id)
         lists_dict = {}
 
-        GET_LISTS = 'SELECT id, name FROM lists WHERE id= %s'
+        GET_LISTS = 'SELECT id, name FROM lists WHERE user_id= %s'
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
@@ -32,10 +36,11 @@ class List(Resource):
         print(lists_dict)
         return lists_dict
 
+    @f_jwt.jwt_required()
     def post(self):
+        user_id = f_jwt.get_jwt_identity()
         data = request.get_json()
         name = data["name"]
-        user_id = None
         current_time = datetime.now()
         # print("cur time :", current_time)
         CREATE_LIST_RETURN_ID = 'INSERT INTO lists(user_id, name, added_at) VALUES(%s, %s, %s) RETURNING id'
@@ -56,10 +61,10 @@ class List(Resource):
             cursor.close()
         return {"message": f"List {name} created with id = {list_id}."}, 201
 
+    @f_jwt.jwt_required()
     def put(self, list_id):
         data = request.get_json()
         name = data["name"]
-        user_id = None
         current_time = datetime.now()
         # print("cur time :", current_time)
         UPDATE_LIST = 'UPDATE lists SET name= %s, updated_at= %s WHERE id= %s'
@@ -78,8 +83,8 @@ class List(Resource):
             cursor.close()
         return {"message": f"List {name} modified."}, 200
 
+    @f_jwt.jwt_required()
     def delete(self, list_id):
-        user_id = None
         current_time = datetime.now()
         # print("cur time :", current_time)
         DELETE_LIST = 'DELETE FROM lists WHERE id= %s'

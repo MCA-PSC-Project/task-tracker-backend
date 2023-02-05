@@ -69,7 +69,7 @@ class Register(Resource):
         # return {"message": f"User {name} created with id = {user_id}."}, 201
 
         # when authenticated, return a fresh access token and a refresh token
-        print(f_jwt)
+        # print(f_jwt)
         access_token = f_jwt.create_access_token(
             identity=user_id, fresh=True)
         refresh_token = f_jwt.create_refresh_token(user_id)
@@ -114,6 +114,13 @@ class Login(Resource):
             abort(400, 'Email or password not correct')
 
         # todo: generate token pair
+        access_token = f_jwt.create_access_token(
+            identity=user_id, fresh=True)
+        refresh_token = f_jwt.create_refresh_token(user_id)
+        return {
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        }, 202
         return {"message": "Status accepted"}, 202
 
 
