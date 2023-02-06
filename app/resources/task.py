@@ -7,6 +7,8 @@ import app.main as main
 import flask_jwt_extended as f_jwt
 from flask import current_app as app
 
+# todo:- duration and actual end time
+
 
 class Task(Resource):
     @f_jwt.jwt_required()
@@ -89,7 +91,7 @@ class Task(Resource):
         task_dict = json.loads(json.dumps(data))
         current_time = datetime.now()
         # app.logger.debug("cur time : %s", current_time)
-        
+
         UPDATE_TASK = '''UPDATE tasks SET title= %s, description= %s, status= %s,
         plan_start_date= %s, plan_end_date= %s, actual_end_date= %s, duration= %s, 
         task_type= %s, notify= %s, repeat= %s, priority= %s, updated_at= %s 
@@ -102,9 +104,9 @@ class Task(Resource):
             # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(UPDATE_TASK, (task_dict['title'], task_dict['description'], task_dict['status'],
-                            task_dict['plan_start_date'], task_dict['plan_end_date'], task_dict['actual_end_date'],
-                            task_dict['duration'], task_dict['task_type'], task_dict['notify'], task_dict['repeat'],
-                            task_dict['priority'], current_time, task_id))
+                                         task_dict['plan_start_date'], task_dict['plan_end_date'], task_dict['actual_end_date'],
+                                         task_dict['duration'], task_dict['task_type'], task_dict['notify'], task_dict['repeat'],
+                                         task_dict['priority'], current_time, task_id))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
