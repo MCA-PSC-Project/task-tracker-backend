@@ -10,6 +10,7 @@ from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPasswor
 from app.resources.list import List
 from app.resources.task import Task
 from app.resources.subtask import SubTask
+from app.resources.home import MyDayTask, PlannedTask
 
 import app.main as main
 
@@ -56,6 +57,11 @@ def create_app(config_name):
 
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
     api.add_resource(Task, '/tasks', '/tasks/<int:task_id>')
-    api.add_resource(SubTask, '/tasks/<int:task_id>/subtasks', '/tasks/<int:task_id>/subtasks/<int:subtask_id>')
+    api.add_resource(SubTask, '/tasks/<int:task_id>/subtasks',
+                     '/tasks/<int:task_id>/subtasks/<int:subtask_id>')
+
+    # Home
+    api.add_resource(MyDayTask, '/my-day')
+    api.add_resource(PlannedTask, '/planned')
 
     return app
