@@ -5,7 +5,7 @@ import flask_jwt_extended as f_jwt
 import psycopg2
 import app.main as main
 import bcrypt
-
+from flask import current_app as app
 
 class Register(Resource):
     def post(self):
@@ -17,7 +17,7 @@ class Register(Resource):
         dob = data["dob"]
         gender = data["gender"]
         current_time = datetime.now()
-        # print("cur time :", current_time)
+        # app.logger.debug("cur time : %s", current_time)
 
         if email == '' or password == '':
             abort(400, 'Bad Request')
@@ -27,14 +27,14 @@ class Register(Resource):
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(CHECK_EMAIL, (email,))
             row = cursor.fetchone()
             if row is not None:
                 abort(400, 'Bad Request')
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
@@ -51,13 +51,13 @@ class Register(Resource):
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(REGISTER_USER, (name, email, phone,
                            hashed_password, dob, gender, current_time,))
             user_id = cursor.fetchone()[0]
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
@@ -65,7 +65,7 @@ class Register(Resource):
         # todo: generate token pair
 
         # when authenticated, return a fresh access token and a refresh token
-        # print(f_jwt)
+        # app.logger.debug(f_jwt)
         access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
         refresh_token = f_jwt.create_refresh_token(user_id)
         return {
@@ -89,7 +89,7 @@ class Login(Resource):
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(GET_USER, (email,))
             row = cursor.fetchone()
@@ -99,7 +99,7 @@ class Login(Resource):
                 user_id = row[0]
                 hashed_password = row[1]
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()

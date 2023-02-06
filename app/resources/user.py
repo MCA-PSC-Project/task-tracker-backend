@@ -5,14 +5,14 @@ import psycopg2
 import app.main as main
 import flask_jwt_extended as f_jwt
 import json
-
+from flask import current_app as app
 
 class UserProfile(Resource):
     @f_jwt.jwt_required()
     def get(self):
         user_id = f_jwt.get_jwt_identity()
         # user_id=20
-        print("user_id=", user_id)
+        app.logger.debug("user_id= %s", user_id)
         user_profile_dict = {}
 
         GET_PROFILE = '''SELECT name, email, phone, TO_CHAR(dob, 'YYYY-MM-DD'), gender FROM users WHERE id= %s'''
@@ -20,7 +20,7 @@ class UserProfile(Resource):
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(GET_PROFILE, (user_id,))
             rows = cursor.fetchall()
@@ -33,36 +33,36 @@ class UserProfile(Resource):
                 user_profile_dict['dob'] = row[3]
                 user_profile_dict['gender'] = row[4]
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
-        print(user_profile_dict)
+        app.logger.debug(user_profile_dict)
         return user_profile_dict
 
     @f_jwt.jwt_required()
     def put(self):
         user_id = f_jwt.get_jwt_identity()
         # user_id=20
-        print("user_id=", user_id)
+        app.logger.debug("user_id= %s", user_id)
         data = request.get_json()
         user_dict = json.loads(json.dumps(data))
-        print(user_dict)
+        app.logger.debug(user_dict)
 
         current_time = datetime.now()
-        # print("cur time :", current_time)
+        # app.logger.debug("cur time : %s", current_time)
         UPDATE_USER = 'UPDATE users SET name= %s, dob=%s, gender=%s, updated_at= %s WHERE id= %s'
 
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(
                 UPDATE_USER, (user_dict['name'], user_dict['dob'], user_dict['gender'], current_time, user_id,))
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
@@ -72,7 +72,7 @@ class UserProfile(Resource):
     def delete(self):
         user_id = f_jwt.get_jwt_identity()
         # user_id=20
-        print("user_id=", user_id)
+        app.logger.debug("user_id=%s", user_id)
 
         DELETE_USER = 'DELETE FROM users WHERE id= %s'
 
@@ -80,11 +80,11 @@ class UserProfile(Resource):
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
-            print("cursor object:", cursor, "\n")
+            app.logger.debug("cursor object: %s", cursor, "\n")
 
             cursor.execute(DELETE_USER, (user_id,))
         except (Exception, psycopg2.Error) as err:
-            print(err)
+            app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
