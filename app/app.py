@@ -8,6 +8,7 @@ from app.config import app_config
 from app.resources.auth import Register, Login, RefreshToken
 from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPassword
 from app.resources.list import List
+from app.resources.task import Task
 
 import app.main as main
 
@@ -53,5 +54,6 @@ def create_app(config_name):
     api.add_resource(ResetPassword, '/reset-password')
 
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
+    api.add_resource(Task, '/tasks', '/tasks/<int:task_id>')
 
     return app
