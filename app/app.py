@@ -6,7 +6,7 @@ import flask_jwt_extended
 # local imports
 from app.config import app_config
 from app.resources.auth import Register, Login, RefreshToken
-from app.resources.user import UserProfile
+from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPassword
 from app.resources.list import List
 
 import app.main as main
@@ -44,7 +44,14 @@ def create_app(config_name):
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
     api.add_resource(RefreshToken, '/auth/refresh')
+
     api.add_resource(UserProfile, '/users/profile')
+
+    #todo
+    api.add_resource(ResetEmail, '/reset-email')
+    api.add_resource(ResetPhone, '/reset-phone')
+    api.add_resource(ResetPassword, '/reset-password')
+
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
     return app

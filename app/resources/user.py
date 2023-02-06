@@ -74,8 +74,6 @@ class UserProfile(Resource):
         # user_id=20
         print("user_id=", user_id)
 
-        current_time = datetime.now()
-        # print("cur time :", current_time)
         DELETE_USER = 'DELETE FROM users WHERE id= %s'
 
         # catch exception for invalid SQL statement
@@ -91,3 +89,18 @@ class UserProfile(Resource):
         finally:
             cursor.close()
         return 200
+
+
+class ResetEmail(Resource):
+    def patch(self):
+        pass
+
+
+class ResetPhone(Resource):
+    def patch(self):
+        pass
+
+
+class ResetPassword(Resource):
+    def post(self):
+        pass

@@ -85,8 +85,6 @@ class List(Resource):
 
     @f_jwt.jwt_required()
     def delete(self, list_id):
-        current_time = datetime.now()
-        # print("cur time :", current_time)
         DELETE_LIST = 'DELETE FROM lists WHERE id= %s'
 
         # catch exception for invalid SQL statement
