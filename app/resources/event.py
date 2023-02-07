@@ -14,20 +14,43 @@ class Event(Resource):
         app.logger.debug("user_id= %s", user_id)
         events_list = []
 
-        GET_EVENTS = '''SELECT id, name, event_type, TO_CHAR(event_date, 'YYYY-MM-DD'),
-         TO_CHAR(event_end_date, 'YYYY-MM-DD'), notify, repeat FROM events WHERE user_id= %s'''
+        args = request.args  # retrieve args from query string
+        event_type_arg = args.get('type', None)
+        event_date_arg = args.get('date', None)
+        app.logger.debug("?type=%s&date=%s", event_type_arg, event_date_arg)
+
+        if event_type_arg == None and event_date_arg == None:
+            GET_EVENTS = '''SELECT id, name, event_type, TO_CHAR(event_date, 'YYYY-MM-DD'),
+            TO_CHAR(event_end_date, 'YYYY-MM-DD'), notify, repeat FROM events WHERE user_id= %s'''
+            GET_EVENTS_TUPLE = (user_id,)
+        elif event_type_arg != None and event_date_arg == None:
+            GET_EVENTS = '''SELECT id, name, event_type, TO_CHAR(event_date, 'YYYY-MM-DD'),
+            TO_CHAR(event_end_date, 'YYYY-MM-DD'), notify, repeat FROM events WHERE user_id= %s
+            AND event_type= %s'''
+            GET_EVENTS_TUPLE = (user_id, event_type_arg,)
+        elif event_type_arg == None and event_date_arg != None:
+            GET_EVENTS = '''SELECT id, name, event_type, TO_CHAR(event_date, 'YYYY-MM-DD'),
+            TO_CHAR(event_end_date, 'YYYY-MM-DD'), notify, repeat FROM events WHERE user_id= %s
+            AND event_date= %s'''
+            GET_EVENTS_TUPLE = (user_id, event_date_arg,)
+        elif event_type_arg != None and event_date_arg != None:
+            GET_EVENTS = '''SELECT id, name, event_type, TO_CHAR(event_date, 'YYYY-MM-DD'),
+            TO_CHAR(event_end_date, 'YYYY-MM-DD'), notify, repeat FROM events WHERE user_id= %s
+            AND event_type= %s AND event_date= %s'''
+            GET_EVENTS_TUPLE = (user_id, event_type_arg, event_date_arg,)
+
         # catch exception for invalid SQL statement
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(GET_EVENTS, (user_id,))
+            cursor.execute(GET_EVENTS, GET_EVENTS_TUPLE)
             rows = cursor.fetchall()
             if not rows:
                 return {}
             for row in rows:
-                event_dict={}
+                event_dict = {}
                 event_dict['id'] = row[0]
                 event_dict['name'] = row[1]
                 event_dict['event_type'] = row[2]
@@ -90,8 +113,9 @@ class Event(Resource):
         notify= %s, repeat= %s, updated_at= %s where id = %s'''
 
         try:
-            cursor =main.db_conn.cursor()
-            cursor.execute(UPDATE_EVENT, (name, event_type, event_date, event_end_date, notify, repeat, current_time, event_id ))
+            cursor = main.db_conn.cursor()
+            cursor.execute(UPDATE_EVENT, (name, event_type, event_date,
+                           event_end_date, notify, repeat, current_time, event_id))
 
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
@@ -100,7 +124,6 @@ class Event(Resource):
         finally:
             cursor.close()
         return {"message": f"Event {name} created with id = {event_id}."}, 200
-
 
     @f_jwt.jwt_required()
     def delete(self, event_id):

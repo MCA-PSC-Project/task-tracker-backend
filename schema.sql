@@ -10,8 +10,8 @@ CREATE type "mode__type" as enum ('white', 'dark');
 CREATE type "top__task__type" as enum ('in-progress', 'completed', 'priority');
 CREATE type "event__type" as enum (
 	'birthday',
-	'marriage-anniversery',
-	'death-anniversery',
+	'marriage_anniversary',
+	'death_anniversary',
 	'holiday',
 	'meeting',
 	'conference',
