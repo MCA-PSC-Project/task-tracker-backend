@@ -1,22 +1,23 @@
 begin;
 --------------TYPES----------------------
-create type "media__type" as enum ('image');
-create type "gender__type" as enum ('male', 'female', 'other');
-create type "status__type" as enum ('in-progress', 'completed');
-create type "task__type" as enum ('my_day', 'planned', 'assigned', 'custom');
-create type "product__type" as enum ('grocery', 'stationery', 'electronics', 'other');
-create type "theme__type" as enum ('color', 'image', 'none');
-create type "mode__type" as enum ('white', 'dark');
-create type "top__task__type" as enum ('in-progress', 'completed', 'priority');
-create type "event__type" as enum (
+CREATE type "media__type" as enum ('image');
+CREATE type "gender__type" as enum ('male', 'female', 'other');
+CREATE type "status__type" as enum ('in-progress', 'completed');
+CREATE type "task__type" as enum ('my_day', 'planned', 'assigned', 'custom');
+CREATE type "product__type" as enum ('grocery', 'stationery', 'electronics', 'other');
+CREATE type "theme__type" as enum ('color', 'image', 'none');
+CREATE type "mode__type" as enum ('white', 'dark');
+CREATE type "top__task__type" as enum ('in-progress', 'completed', 'priority');
+CREATE type "event__type" as enum (
 	'birthday',
 	'marriage-anniversery',
 	'death-anniversery',
 	'holiday',
+	'meeting',
 	'conference',
 	'other'
 );
-create type "item__type" as enum (
+CREATE type "item__type" as enum (
 	'milk',
 	'water',
 	'newspaper',
@@ -24,48 +25,48 @@ create type "item__type" as enum (
 	'other'
 );
 -----------------------TABLES-------------------------------------------
-create table "media"(
-	"id" int primary KEY,
+CREATE TABLE "media"(
+	"id" int PRIMARY KEY,
 	"name" varchar(20),
 	"path" varchar(50),
 	"mediatype" media__type
 );
-create table "users"(
+CREATE TABLE "users"(
 	"id" serial PRIMARY KEY,
-	"name" varchar not null,
-	"email" VARCHAR not null UNIQUE,
+	"name" varchar NOT NULL,
+	"email" VARCHAR NOT NULL UNIQUE,
 	"phone" VARCHAR(13) UNIQUE DEFAULT NULL,
-	"password" varchar not null,
-	"dob" date not null,
-	"gender" gender__type,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
+	"password" varchar NOT NULL,
+	"dob" date NOT NULL,
+	"gender" gender__type NOT NULL,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
 	"dp_id" int,
 	"trash" boolean DEFAULT false,
 	FOREIGN KEY("dp_id") references "media"("id") ON DELETE
 	SET NULL
 );
-create table "lists"(
+CREATE TABLE "lists"(
 	"id" serial PRIMARY KEY,
 	"user_id" integer,
-	"name" varchar not null,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
+	"name" varchar NOT NULL,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-create table "tasks"(
-	"id" serial primary KEY,
+CREATE TABLE "tasks"(
+	"id" serial PRIMARY KEY,
 	"user_id" integer,
-	"title" varchar,
+	"title" varchar NOT NULL,
 	"description" varchar,
-	"status" status__type,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
-	"plan_start_date" timestamp DEFAULT null,
-	"plan_end_date" timestamp DEFAULT null,
-	"actual_end_date" timestamp DEFAULT null,
+	"status" status__type NOT NULL,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
+	"plan_start_date" timestamp DEFAULT NULL,
+	"plan_end_date" timestamp DEFAULT NULL,
+	"actual_end_date" timestamp DEFAULT NULL,
 	"duration" integer,
-	"task_type" task__type,
+	"task_type" task__type NOT NULL,
 	"notify" boolean DEFAULT true,
 	"repeat" boolean DEFAULT false,
 	"priority" boolean DEFAULT false,
@@ -73,31 +74,31 @@ create table "tasks"(
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
 	FOREIGN KEY("list_id") references "lists"("id") ON DELETE CASCADE
 );
-create table "subtasks"(
-	"id" serial primary KEY,
+CREATE TABLE "subtasks"(
+	"id" serial PRIMARY KEY,
 	"user_id" integer,
 	"task_id" integer,
-	"title" varchar,
+	"title" varchar NOT NULL,
 	"description" varchar,
-	"status" status__type,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
-	"plan_start_date" timestamp DEFAULT null,
-	"plan_end_date" timestamp DEFAULT null,
-	"actual_end_date" timestamp DEFAULT null,
+	"status" status__type NOT NULL,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
+	"plan_start_date" timestamp DEFAULT NULL,
+	"plan_end_date" timestamp DEFAULT NULL,
+	"actual_end_date" timestamp DEFAULT NULL,
 	"duration" integer,
-	"task_type" task__type,
+	"subtask_type" task__type NOT NULL,
 	"notify" boolean DEFAULT true,
 	"repeat" boolean DEFAULT false,
 	"priority" boolean DEFAULT false,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
 	FOREIGN KEY("task_id") references "tasks"("id") ON DELETE CASCADE
 );
-create table "assigned_tasks"(
+CREATE TABLE "assigned_tasks"(
 	"assigner_user_id" integer,
 	"assignee_user_id" integer,
 	"task_id" integer,
-	"assigned_at" timestamp not null,
+	"assigned_at" timestamp NOT NULL,
 	PRIMARY KEY("assignee_user_id", "task_id"),
 	FOREIGN KEY("assigner_user_id") references "users"("id") ON DELETE
 	SET NULL,
@@ -105,61 +106,61 @@ create table "assigned_tasks"(
 	SET NULL,
 		FOREIGN KEY("task_id") references "tasks"("id") ON DELETE CASCADE
 );
-create table "basket"(
+CREATE TABLE "baskets"(
 	"id" serial PRIMARY KEY,
 	"user_id" integer,
-	"product_name" varchar not null,
-	"status_type" status__type,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
-	"completed_at" timestamp DEFAULT null,
-	"product_type" product__type,
+	"product_name" varchar NOT NULL,
+	"status_type" status__type NOT NULL,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
+	"completed_at" timestamp DEFAULT NULL,
+	"product_type" product__type NOT NULL,
 	"repeat" boolean DEFAULT false,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-create table "users_settings"(
+CREATE TABLE "users_settings"(
 	"user_id" integer,
-	"theme_type" theme__type,
+	"theme_type" theme__type NOT NULL,
 	"theme_color" varchar(10) DEFAULT 'white',
-	"background_image_id" integer DEFAULT null,
+	"background_image_id" integer DEFAULT NULL,
 	"confirm_deletion" boolean DEFAULT false,
-	"top_task_type" top__task__type DEFAULT 'in-progress',
+	"top_task_type" top__task__type NOT NULL DEFAULT 'in-progress',
 	"notify" boolean DEFAULT true,
-	"mode" mode__type DEFAULT 'white',
+	"mode" mode__type NOT NULL DEFAULT 'white',
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
 	FOREIGN KEY("background_image_id") references "media"("id") ON DELETE
 	SET NULL
 );
-create table "events"(
-	"id" serial primary KEY,
-	"name" varchar,
+CREATE TABLE "events"(
+	"id" serial PRIMARY KEY,
+	"name" varchar NOT NULL,
 	"user_id" integer,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
-	"event_type" event__type,
-	"event_date" timestamp not null,
-	"event_end_date" timestamp DEFAULT null,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
+	"event_type" event__type NOT NULL,
+	"event_date" timestamp NOT NULL,
+	"event_end_date" timestamp DEFAULT NULL,
 	"notify" boolean DEFAULT true,
 	"repeat" boolean DEFAULT false,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-create table "bills"(
-	"id" serial primary KEY,
+CREATE TABLE "bills"(
+	"id" serial PRIMARY KEY,
 	"user_id" integer,
-	"added_at" timestamp not null,
-	"updated_at" timestamp DEFAULT null,
-	"rate" float not null,
-	"quantity" float not null,
-	"item_type" item__type,
+	"added_at" timestamp NOT NULL,
+	"updated_at" timestamp DEFAULT NULL,
+	"rate" float NOT NULL,
+	"quantity" float NOT NULL,
+	"item_type" item__type NOT NULL,
 	"paid" boolean DEFAULT false,
-	"paid_at" timestamp DEFAULT null,
+	"paid_at" timestamp DEFAULT NULL,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-create table "monthly_bills"(
-	"id" serial primary KEY,
+CREATE TABLE "monthly_bills"(
+	"id" serial PRIMARY KEY,
 	"user_id" integer,
-	"cost" float not null,
-	"item_type" item__type,
+	"cost" float NOT NULL,
+	"item_type" item__type NOT NULL,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
 ----- Indexes -----
