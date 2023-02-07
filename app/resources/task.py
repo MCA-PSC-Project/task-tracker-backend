@@ -18,7 +18,7 @@ class Task(Resource):
         app.logger.debug("user_id= %s", user_id)
         tasks_list = []
 
-        GET_TASKS = '''SELECT id, title, description, status,TO_CHAR(plan_start_date, 'YYYY-MM-DD'), 
+        GET_TASKS = '''SELECT id, title, description, status, TO_CHAR(plan_start_date, 'YYYY-MM-DD'), 
         TO_CHAR(plan_end_date, 'YYYY-MM-DD'), TO_CHAR(actual_end_date, 'YYYY-MM-DD'), duration, task_type, notify, repeat, priority 
         FROM tasks WHERE user_id= %s'''
 

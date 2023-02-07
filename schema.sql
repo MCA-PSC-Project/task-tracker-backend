@@ -6,7 +6,7 @@ CREATE type "status__type" as enum ('in-progress', 'completed');
 CREATE type "task__type" as enum ('my_day', 'planned', 'assigned', 'custom');
 CREATE type "product__type" as enum ('grocery', 'stationery', 'electronics', 'other');
 CREATE type "theme__type" as enum ('color', 'image', 'none');
-CREATE type "mode__type" as enum ('white', 'dark');
+CREATE type "mode__type" as enum ('light', 'dark');
 CREATE type "top__task__type" as enum ('in-progress', 'completed', 'priority');
 CREATE type "event__type" as enum (
 	'birthday',
@@ -59,7 +59,7 @@ CREATE TABLE "tasks"(
 	"user_id" integer,
 	"title" varchar NOT NULL,
 	"description" varchar,
-	"status" status__type NOT NULL,
+	"status" status__type NOT NULL DEFAULT 'in-progress',
 	"added_at" timestamp NOT NULL,
 	"updated_at" timestamp DEFAULT NULL,
 	"plan_start_date" timestamp DEFAULT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE "subtasks"(
 	"task_id" integer,
 	"title" varchar NOT NULL,
 	"description" varchar,
-	"status" status__type NOT NULL,
+	"status" status__type NOT NULL DEFAULT 'in-progress',
 	"added_at" timestamp NOT NULL,
 	"updated_at" timestamp DEFAULT NULL,
 	"plan_start_date" timestamp DEFAULT NULL,
@@ -99,6 +99,7 @@ CREATE TABLE "assigned_tasks"(
 	"assignee_user_id" integer,
 	"task_id" integer,
 	"assigned_at" timestamp NOT NULL,
+	"status" status__type NOT NULL DEFAULT 'in-progress',
 	PRIMARY KEY("assignee_user_id", "task_id"),
 	FOREIGN KEY("assigner_user_id") references "users"("id") ON DELETE
 	SET NULL,
@@ -110,7 +111,7 @@ CREATE TABLE "baskets"(
 	"id" serial PRIMARY KEY,
 	"user_id" integer,
 	"product_name" varchar NOT NULL,
-	"status_type" status__type NOT NULL,
+	"status_type" status__type NOT NULL DEFAULT 'in-progress',
 	"added_at" timestamp NOT NULL,
 	"updated_at" timestamp DEFAULT NULL,
 	"completed_at" timestamp DEFAULT NULL,
@@ -121,12 +122,12 @@ CREATE TABLE "baskets"(
 CREATE TABLE "users_settings"(
 	"user_id" integer,
 	"theme_type" theme__type NOT NULL,
-	"theme_color" varchar(10) DEFAULT 'white',
+	"theme_color" varchar(10) DEFAULT 'color',
 	"background_image_id" integer DEFAULT NULL,
 	"confirm_deletion" boolean DEFAULT false,
 	"top_task_type" top__task__type NOT NULL DEFAULT 'in-progress',
 	"notify" boolean DEFAULT true,
-	"mode" mode__type NOT NULL DEFAULT 'white',
+	"mode" mode__type NOT NULL DEFAULT 'light',
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
 	FOREIGN KEY("background_image_id") references "media"("id") ON DELETE
 	SET NULL
