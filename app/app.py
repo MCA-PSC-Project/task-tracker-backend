@@ -11,6 +11,7 @@ from app.resources.list import List
 from app.resources.event import Event
 from app.resources.task import Task
 from app.resources.subtask import SubTask
+from app.resources.basket import Basket
 from app.resources.home import MyDayTask, PlannedTask
 
 import app.main as main
@@ -68,5 +69,7 @@ def create_app(config_name):
     api.add_resource(PlannedTask, '/planned')
 
     api.add_resource(Event, '/events', '/events/<int:event_id>')
-    
+
+    api.add_resource(Basket, '/baskets', '/baskets/<int:basket_id>')
+
     return app
