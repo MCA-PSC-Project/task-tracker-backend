@@ -15,7 +15,8 @@ class Basket(Resource):
         app.logger.debug("user_id= %s", user_id)
         baskets_list = []
 
-        GET_BASKETS = '''SELECT id, product_name, status_type,TO_CHAR(completed_at, 'YYYY-MM-DD'), product_type, repeat FROM baskets WHERE user_id= %s'''
+        GET_BASKETS = '''SELECT id, product_name, status_type,TO_CHAR(completed_at, 'YYYY-MM-DD'), 
+        product_type, repeat FROM baskets WHERE user_id= %s'''
     
         try:
 
@@ -53,7 +54,8 @@ class Basket(Resource):
         repeat = data["repeat"]
         current_time = datetime.now()
     
-        CREATE_BASKET_RETURN_ID = 'INSERT INTO baskets(user_id, product_name, status_type, added_at, product_type, repeat) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id'
+        CREATE_BASKET_RETURN_ID = '''INSERT INTO baskets(user_id, product_name, status_type, added_at, product_type, repeat) 
+        VALUES(%s, %s, %s, %s, %s, %s) RETURNING id'''
 
         try:
     
@@ -78,7 +80,8 @@ class Basket(Resource):
         product_type = data["product_type"]
         repeat = data["repeat"]
         current_time = datetime.now()
-        UPDATE_LIST = '''UPDATE baskets SET product_name= %s, status_type= %s, updated_at= %s, completed_at= %s, product_type= %s, repeat=%s WHERE id= %s'''
+        UPDATE_LIST = '''UPDATE baskets SET product_name= %s, status_type= %s, updated_at= %s, completed_at= %s,
+         product_type= %s, repeat=%s WHERE id= %s'''
 
         # catch exception for invalid SQL statement
         try:
@@ -92,11 +95,11 @@ class Basket(Resource):
             abort(400, 'Bad Request')
         finally:
             cursor.close()
-        return {"message": f"List {product_name} modified."}, 200
+        return {"message": f"Basket {basket_id} modified."}, 200
 
     @f_jwt.jwt_required()
     def delete(self, basket_id):
-        DELETE_LIST = 'DELETE FROM baskets WHERE id= %s'
+        DELETE_BASKET = 'DELETE FROM baskets WHERE id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -104,7 +107,7 @@ class Basket(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(DELETE_LIST, (basket_id,))
+            cursor.execute(DELETE_BASKET, (basket_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
