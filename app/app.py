@@ -58,7 +58,6 @@ def create_app(config_name):
 
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
-    api.add_resource(Event, '/events', '/events/<int:event_id>')
 
     api.add_resource(Task, '/tasks', '/tasks/<int:task_id>')
     api.add_resource(SubTask, '/tasks/<int:task_id>/subtasks',
@@ -68,4 +67,6 @@ def create_app(config_name):
     api.add_resource(MyDayTask, '/my-day')
     api.add_resource(PlannedTask, '/planned')
 
+    api.add_resource(Event, '/events', '/events/<int:event_id>')
+    
     return app
