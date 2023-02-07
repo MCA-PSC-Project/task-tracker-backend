@@ -9,6 +9,9 @@ from app.resources.auth import Register, Login, RefreshToken
 from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPassword
 from app.resources.list import List
 from app.resources.event import Event
+from app.resources.task import Task
+from app.resources.subtask import SubTask
+from app.resources.home import MyDayTask, PlannedTask
 
 import app.main as main
 
@@ -48,7 +51,7 @@ def create_app(config_name):
 
     api.add_resource(UserProfile, '/users/profile')
 
-    #todo
+    # todo
     api.add_resource(ResetEmail, '/reset-email')
     api.add_resource(ResetPhone, '/reset-phone')
     api.add_resource(ResetPassword, '/reset-password')
@@ -57,5 +60,12 @@ def create_app(config_name):
 
     api.add_resource(Event, '/events', '/events/<int:event_id>')
 
+    api.add_resource(Task, '/tasks', '/tasks/<int:task_id>')
+    api.add_resource(SubTask, '/tasks/<int:task_id>/subtasks',
+                     '/tasks/<int:task_id>/subtasks/<int:subtask_id>')
+
+    # Home
+    api.add_resource(MyDayTask, '/my-day')
+    api.add_resource(PlannedTask, '/planned')
 
     return app
