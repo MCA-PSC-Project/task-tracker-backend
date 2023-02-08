@@ -25,14 +25,16 @@ class Assignment(Resource):
             GET_ASSIGNED_TASKS = '''SELECT t.id, t.title, t.description, t.status, TO_CHAR(t.plan_start_date, 'YYYY-MM-DD'), 
             TO_CHAR(t.plan_end_date, 'YYYY-MM-DD'), TO_CHAR(t.actual_end_date, 'YYYY-MM-DD'), 
             t.duration, t.task_type, t.notify, t.repeat, t.priority, 
-            (SELECT email FROM users WHERE id = at.assignee_user_id), TO_CHAR(at.assigned_at, 'YYYY-MM-DD'), at.status 
+            (SELECT email FROM users WHERE id = at.assignee_user_id), at.assignee_user_id, 
+            TO_CHAR(at.assigned_at, 'YYYY-MM-DD'), at.status 
             FROM tasks t JOIN assigned_tasks at ON t.id = at.task_id
             WHERE at.assigner_user_id= %s'''
         elif to_arg == 'me':
             GET_ASSIGNED_TASKS = '''SELECT t.id, t.title, t.description, t.status, TO_CHAR(t.plan_start_date, 'YYYY-MM-DD'), 
             TO_CHAR(t.plan_end_date, 'YYYY-MM-DD'), TO_CHAR(t.actual_end_date, 'YYYY-MM-DD'), 
             t.duration, t.task_type, t.notify, t.repeat, t.priority, 
-            (SELECT email FROM users WHERE id = at.assigner_user_id), TO_CHAR(at.assigned_at, 'YYYY-MM-DD'), at.status 
+            (SELECT email FROM users WHERE id = at.assigner_user_id), at.assigner_user_id, 
+            TO_CHAR(at.assigned_at, 'YYYY-MM-DD'), at.status 
             FROM tasks t JOIN assigned_tasks at ON t.id = at.task_id
             WHERE at.assignee_user_id= %s'''
 
@@ -48,9 +50,11 @@ class Assignment(Resource):
                 return {}
 
             if to_arg == 'others':
-                id_key = 'asssignee_email'
+                email_key = 'asssignee_email'
+                id_key = 'assignee_user_id'
             elif to_arg == 'me':
-                id_key = 'asssigner_email'
+                email_key = 'asssigner_email'
+                id_key = 'assigner_user_id'
 
             for row in rows:
                 task_dict = {}
@@ -67,10 +71,11 @@ class Assignment(Resource):
                 task_dict['repeat'] = row[10]
                 task_dict['priority'] = row[11]
 
-                task_dict[id_key] = row[12]
+                task_dict[email_key] = row[12]
+                task_dict[id_key] = row[13]
 
-                task_dict['assigned_at'] = row[13]
-                task_dict['status'] = row[14]
+                task_dict['assigned_at'] = row[14]
+                task_dict['status'] = row[15]
                 tasks_list.append(task_dict)
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
@@ -129,9 +134,11 @@ class Assignment(Resource):
 
     @f_jwt.jwt_required()
     def patch(self, task_id):
+        # retrieve status and assignee user id from json
         data = request.get_json()
         status = data.get('status', None)
-        assignee_user_id = data.get('asssignee_user_id', None)
+        assignee_user_id = data.get('assignee_user_id', None)
+        # app.logger.debug("%s , %s", status, assignee_user_id)
         if status == None or assignee_user_id == None:
             abort(400, 'Bad Request')
         current_time = datetime.now()
@@ -145,7 +152,10 @@ class Assignment(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(UPDATE_ASSIGNED_TASK, (status, task_id, assignee_user_id))
+            cursor.execute(UPDATE_ASSIGNED_TASK, (status, task_id, assignee_user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -156,7 +166,7 @@ class Assignment(Resource):
     @f_jwt.jwt_required()
     def delete(self, task_id):
         args = request.args  # retrieve args from query string
-        assignee_user_id = args.get('to', None)
+        assignee_user_id = args.get('assignee_user_id', None)
         app.logger.debug("?assignee_id=%s", assignee_user_id)
 
         if assignee_user_id == None:
