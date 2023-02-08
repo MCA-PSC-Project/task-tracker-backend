@@ -7,9 +7,6 @@ import app.main as main
 import flask_jwt_extended as f_jwt
 from flask import current_app as app
 
-# todo:- duration and actual end time
-
-
 class UserSetting(Resource):
     @f_jwt.jwt_required()
     def get(self):
@@ -86,4 +83,46 @@ class UserSetting(Resource):
 
 
 class ResetUserSetting(Resource):
-    pass
+    @f_jwt.jwt_required()
+    def put(self, setting_id):
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
+        setting_dict= {
+            "theme_type" : "color",
+            "theme_color" : "white",
+            "background_image_id" : None,
+            "confirm_deletion" : "false",
+            "top_task_type" : "in-progress",
+            "notify" : "true",
+            "mode" : "light"
+        }
+        # current_time = datetime.now()
+        # app.logger.debug("cur time : %s", current_time)
+
+        RESET_SETTING = '''UPDATE users_settings SET theme_type= %s, theme_color= %s, background_image_id= %s,
+        confirm_deletion= %s ,top_task_type= %s ,notify= %s ,mode= %s
+        WHERE id= %s AND user_id= %s'''
+
+        # catch exception for invalid SQL statement
+        try:
+            # declare a cursor object from the connection
+            cursor = main.db_conn.cursor()
+            # app.logger.debug("cursor object: %s", cursor)
+
+            cursor.execute(RESET_SETTING, (setting_dict['theme_type'], setting_dict['theme_color'],
+                                            setting_dict['background_image_id'], setting_dict['confirm_deletion'],
+                                            setting_dict['top_task_type'], setting_dict['notify'],
+                                            setting_dict['mode'], setting_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
+        except (Exception, psycopg2.Error) as err:
+            app.logger.debug(err)
+            abort(400, 'Bad Request')
+        finally:
+            cursor.close()
+        return {"message": f"Setting of id= {setting_id} reset."}, 200
+
+

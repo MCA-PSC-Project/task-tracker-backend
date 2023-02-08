@@ -14,7 +14,7 @@ from app.resources.subtask import SubTask
 from app.resources.basket import Basket
 from app.resources.home import MyDayTask, PlannedTask
 from app.resources.assign import Assignment
-from app.resources.setting import UserSetting
+from app.resources.setting import UserSetting, ResetUserSetting
 
 import app.main as main
 
@@ -76,6 +76,8 @@ def create_app(config_name):
 
     api.add_resource(Assignment, '/assigns', '/assigns/<int:task_id>')
 
+    # Settings
     api.add_resource(UserSetting, '/users/settings', '/users/settings/<int:setting_id>')
+    api.add_resource(ResetUserSetting, '/users/reset-settings/<int:setting_id>')
 
     return app
