@@ -66,11 +66,15 @@ class List(Resource):
 
     @f_jwt.jwt_required()
     def put(self, list_id):
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
         data = request.get_json()
         name = data["name"]
         current_time = datetime.now()
         # app.logger.debug("cur time : %s", current_time)
-        UPDATE_LIST = 'UPDATE lists SET name= %s, updated_at= %s WHERE id= %s'
+        UPDATE_LIST = 'UPDATE lists SET name= %s, updated_at= %s WHERE id= %s AND user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -78,7 +82,10 @@ class List(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(UPDATE_LIST, (name, current_time, list_id,))
+            cursor.execute(UPDATE_LIST, (name, current_time, list_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -88,7 +95,11 @@ class List(Resource):
 
     @f_jwt.jwt_required()
     def delete(self, list_id):
-        DELETE_LIST = 'DELETE FROM lists WHERE id= %s'
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
+        DELETE_LIST = 'DELETE FROM lists WHERE id= %s AND user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -96,7 +107,7 @@ class List(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(DELETE_LIST, (list_id,))
+            cursor.execute(DELETE_LIST, (list_id, user_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')

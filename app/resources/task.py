@@ -87,6 +87,10 @@ class Task(Resource):
 
     @f_jwt.jwt_required()
     def put(self, task_id):
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
         data = request.get_json()
         task_dict = json.loads(json.dumps(data))
         current_time = datetime.now()
@@ -95,7 +99,7 @@ class Task(Resource):
         UPDATE_TASK = '''UPDATE tasks SET title= %s, description= %s, status= %s,
         plan_start_date= %s, plan_end_date= %s, actual_end_date= %s, duration= %s, 
         task_type= %s, notify= %s, repeat= %s, priority= %s, updated_at= %s 
-        WHERE id=%s'''
+        WHERE id=%s AND user_id= %s'''
 
         # catch exception for invalid SQL statement
         try:
@@ -106,7 +110,10 @@ class Task(Resource):
             cursor.execute(UPDATE_TASK, (task_dict['title'], task_dict['description'], task_dict['status'],
                                          task_dict['plan_start_date'], task_dict['plan_end_date'], task_dict['actual_end_date'],
                                          task_dict['duration'], task_dict['task_type'], task_dict['notify'], task_dict['repeat'],
-                                         task_dict['priority'], current_time, task_id))
+                                         task_dict['priority'], current_time, task_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -116,7 +123,11 @@ class Task(Resource):
 
     @f_jwt.jwt_required()
     def delete(self, task_id):
-        DELETE_TASK = 'DELETE FROM tasks WHERE id= %s'
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
+        DELETE_TASK = 'DELETE FROM tasks WHERE id= %s AND user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -124,7 +135,7 @@ class Task(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(DELETE_TASK, (task_id,))
+            cursor.execute(DELETE_TASK, (task_id, user_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')

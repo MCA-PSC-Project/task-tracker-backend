@@ -73,6 +73,10 @@ class Basket(Resource):
 
     @f_jwt.jwt_required()
     def put(self, basket_id):
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
         data = request.get_json()
         product_name = data["product_name"]
         status_type = data["status_type"]
@@ -81,7 +85,7 @@ class Basket(Resource):
         repeat = data["repeat"]
         current_time = datetime.now()
         UPDATE_LIST = '''UPDATE baskets SET product_name= %s, status_type= %s, updated_at= %s, completed_at= %s,
-         product_type= %s, repeat=%s WHERE id= %s'''
+         product_type= %s, repeat=%s WHERE id= %s AND user_id= %s'''
 
         # catch exception for invalid SQL statement
         try:
@@ -89,7 +93,11 @@ class Basket(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(UPDATE_LIST, (product_name, status_type, current_time, completed_at, product_type, repeat, basket_id,))
+            cursor.execute(UPDATE_LIST, (product_name, status_type, current_time, completed_at, 
+            product_type, repeat, basket_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -99,7 +107,11 @@ class Basket(Resource):
 
     @f_jwt.jwt_required()
     def delete(self, basket_id):
-        DELETE_BASKET = 'DELETE FROM baskets WHERE id= %s'
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
+        DELETE_BASKET = 'DELETE FROM baskets WHERE id= %s AND user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -107,7 +119,7 @@ class Basket(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(DELETE_BASKET, (basket_id,))
+            cursor.execute(DELETE_BASKET, (basket_id, user_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')

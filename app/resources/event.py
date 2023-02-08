@@ -100,6 +100,10 @@ class Event(Resource):
 
     @f_jwt.jwt_required()
     def put(self, event_id):
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
         data = request.get_json()
         name = data["name"]
         event_type = data["event_type"]
@@ -110,13 +114,15 @@ class Event(Resource):
         current_time = datetime.now()
 
         UPDATE_EVENT = '''UPDATE events SET name= %s, event_type= %s, event_date= %s, event_end_date= %s, 
-        notify= %s, repeat= %s, updated_at= %s where id = %s'''
+        notify= %s, repeat= %s, updated_at= %s where id = %s AND user_id= %s'''
 
         try:
             cursor = main.db_conn.cursor()
             cursor.execute(UPDATE_EVENT, (name, event_type, event_date,
-                           event_end_date, notify, repeat, current_time, event_id))
-
+                           event_end_date, notify, repeat, current_time, event_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: update row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -127,11 +133,15 @@ class Event(Resource):
 
     @f_jwt.jwt_required()
     def delete(self, event_id):
-        DELETE_EVENT = 'DELETE FROM events WHERE id= %s'
+        user_id = f_jwt.get_jwt_identity()
+        # user_id=20
+        app.logger.debug("user_id= %s", user_id)
+
+        DELETE_EVENT = 'DELETE FROM events WHERE id= %s AND user_id= %s'
 
         try:
             cursor = main.db_conn.cursor()
-            cursor.execute(DELETE_EVENT, (event_id,))
+            cursor.execute(DELETE_EVENT, (event_id, user_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
