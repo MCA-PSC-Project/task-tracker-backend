@@ -128,16 +128,16 @@ class Assignment(Resource):
         return {"message": f"Task assigned to user with email= {assign_task_dict.get('assignee_email')}"}, 201
 
     @f_jwt.jwt_required()
-    def put(self, task_id):
+    def patch(self, task_id):
         data = request.get_json()
-        task_dict = json.loads(json.dumps(data))
+        status = data.get('status', None)
+        assignee_user_id = data.get('asssignee_user_id', None)
+        if status == None or assignee_user_id == None:
+            abort(400, 'Bad Request')
         current_time = datetime.now()
         # app.logger.debug("cur time : %s", current_time)
 
-        UPDATE_TASK = '''UPDATE tasks SET title= %s, description= %s, status= %s,
-        plan_start_date= %s, plan_end_date= %s, actual_end_date= %s, duration= %s, 
-        task_type= %s, notify= %s, repeat= %s, priority= %s, updated_at= %s 
-        WHERE id=%s'''
+        UPDATE_ASSIGNED_TASK = 'UPDATE assigned_tasks SET status= %s WHERE task_id= %s AND assignee_user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -145,20 +145,24 @@ class Assignment(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(UPDATE_TASK, (task_dict['title'], task_dict['description'], task_dict['status'],
-                                         task_dict['plan_start_date'], task_dict['plan_end_date'], task_dict['actual_end_date'],
-                                         task_dict['duration'], task_dict['task_type'], task_dict['notify'], task_dict['repeat'],
-                                         task_dict['priority'], current_time, task_id))
+            cursor.execute(UPDATE_ASSIGNED_TASK, (status, task_id, assignee_user_id))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
         finally:
             cursor.close()
-        return {"message": f"Task of id= {task_id} modified."}, 200
+        return {"message": f"status of assigned task of id= {task_id} modified."}, 200
 
     @f_jwt.jwt_required()
     def delete(self, task_id):
-        DELETE_TASK = 'DELETE FROM tasks WHERE id= %s'
+        args = request.args  # retrieve args from query string
+        assignee_user_id = args.get('to', None)
+        app.logger.debug("?assignee_id=%s", assignee_user_id)
+
+        if assignee_user_id == None:
+            abort(400, 'Bad Request')
+
+        DELETE_ASSIGNED_TASK = 'DELETE FROM assigned_tasks WHERE task_id= %s AND assignee_user_id= %s'
 
         # catch exception for invalid SQL statement
         try:
@@ -166,7 +170,7 @@ class Assignment(Resource):
             cursor = main.db_conn.cursor()
             # app.logger.debug("cursor object: %s", cursor)
 
-            cursor.execute(DELETE_TASK, (task_id,))
+            cursor.execute(DELETE_ASSIGNED_TASK, (task_id, assignee_user_id,))
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
