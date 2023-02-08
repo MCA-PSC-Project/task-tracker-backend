@@ -1,4 +1,4 @@
-begin;
+BEGIN;
 --------------TYPES----------------------
 CREATE type "media__type" as enum ('image');
 CREATE type "gender__type" as enum ('male', 'female', 'other');
@@ -119,19 +119,6 @@ CREATE TABLE "baskets"(
 	"repeat" boolean DEFAULT false,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
-CREATE TABLE "users_settings"(
-	"user_id" integer,
-	"theme_type" theme__type NOT NULL,
-	"theme_color" varchar(10) DEFAULT 'color',
-	"background_image_id" integer DEFAULT NULL,
-	"confirm_deletion" boolean DEFAULT false,
-	"top_task_type" top__task__type NOT NULL DEFAULT 'in-progress',
-	"notify" boolean DEFAULT true,
-	"mode" mode__type NOT NULL DEFAULT 'light',
-	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
-	FOREIGN KEY("background_image_id") references "media"("id") ON DELETE
-	SET NULL
-);
 CREATE TABLE "events"(
 	"id" serial PRIMARY KEY,
 	"name" varchar NOT NULL,
@@ -164,7 +151,42 @@ CREATE TABLE "monthly_bills"(
 	"item_type" item__type NOT NULL,
 	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE
 );
+CREATE TABLE "users_settings"(
+	"id" serial PRIMARY KEY,
+	"user_id" integer,
+	"theme_type" theme__type NOT NULL DEFAULT 'color',
+	"theme_color" varchar(10) DEFAULT 'white',
+	"background_image_id" integer DEFAULT NULL,
+	"confirm_deletion" boolean DEFAULT false,
+	"top_task_type" top__task__type NOT NULL DEFAULT 'in-progress',
+	"notify" boolean DEFAULT true,
+	"mode" mode__type NOT NULL DEFAULT 'light',
+	FOREIGN KEY("user_id") references "users"("id") ON DELETE CASCADE,
+	FOREIGN KEY("background_image_id") references "media"("id") ON DELETE
+	SET NULL
+);
+
 ----- Indexes -----
 CREATE INDEX ON "users" ("email");
 CREATE INDEX ON "users" ("phone");
-end;
+
+----- Triggers -----
+
+
+---- todo: add trigger for completed at time when status is completed ----
+
+-- trigger for creating a row in 'users_settings' table when new row is inserted in setting  
+CREATE OR REPLACE FUNCTION create_user_settings() RETURNS trigger AS $$  
+BEGIN  
+	INSERT INTO "users_settings" (user_id) 
+	VALUES (NEW.id);
+  RETURN NEW;
+END; 
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER "insert_into_users_settings_trigger" AFTER INSERT ON "users" 
+FOR EACH ROW EXECUTE PROCEDURE create_user_settings(); 
+
+
+END;
