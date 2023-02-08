@@ -7,21 +7,23 @@ import app.main as main
 import bcrypt
 from flask import current_app as app
 
+
 class Register(Resource):
     def post(self):
         data = request.get_json()
-        name = data["name"]
-        email = data["email"]
-        phone = data["phone"]
-        password = data["password"]
-        dob = data["dob"]
-        gender = data["gender"]
+        email = data.get("email", None)
+        password = data.get("password", None)
+        name = data.get("name", None)
+        email = data.get("email", None)
+        phone = data.get("phone", None)
+        password = data.get("password", None)
+        dob = data.get("dob", None)
+        gender = data.get("gender", None)
         current_time = datetime.now()
         # app.logger.debug("cur time : %s", current_time)
 
-        if email == '' or password == '':
+        if not email or not password:
             abort(400, 'Bad Request')
-
         # check if user of given email already exists
         CHECK_EMAIL = 'SELECT id FROM users WHERE email= %s'
         try:
@@ -78,10 +80,10 @@ class Register(Resource):
 class Login(Resource):
     def post(self):
         data = request.get_json()
-        email = data["email"]
-        password = data["password"]
+        email = data.get("email", None)
+        password = data.get("password", None)
 
-        if email == '' or password == '':
+        if not email or not password:
             abort(400, 'Bad Request')
 
         # check if user of given email already exists
@@ -125,5 +127,6 @@ class RefreshToken(Resource):
         current_user_id = f_jwt.get_jwt_identity()
 
         # return a non-fresh token for the user
-        new_token = f_jwt.create_access_token(identity=current_user_id, fresh=False)
+        new_token = f_jwt.create_access_token(
+            identity=current_user_id, fresh=False)
         return {'access_token': new_token}, 200

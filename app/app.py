@@ -19,8 +19,6 @@ from app.resources.setting import UserSetting, ResetUserSetting
 import app.main as main
 
 # db_conn = psycopg2.connect()
-# app.logger.debug('DATABASE_URI=%s ', app_configDATABASE_URI)
-
 
 # @app.get("/")  # http://127.0.0.1:5000/
 # def get_index():
@@ -61,7 +59,6 @@ def create_app(config_name):
 
     api.add_resource(List, '/lists', '/lists/<int:list_id>')
 
-
     api.add_resource(Task, '/tasks', '/tasks/<int:task_id>')
     api.add_resource(SubTask, '/tasks/<int:task_id>/subtasks',
                      '/tasks/<int:task_id>/subtasks/<int:subtask_id>')
@@ -77,7 +74,9 @@ def create_app(config_name):
     api.add_resource(Assignment, '/assigns', '/assigns/<int:task_id>')
 
     # Settings
-    api.add_resource(UserSetting, '/users/settings', '/users/settings/<int:setting_id>')
-    api.add_resource(ResetUserSetting, '/users/reset-settings/<int:setting_id>')
+    api.add_resource(UserSetting, '/users/settings',
+                     '/users/settings/<int:setting_id>')
+    api.add_resource(ResetUserSetting,
+                     '/users/reset-settings/<int:setting_id>')
 
     return app

@@ -43,6 +43,8 @@ CREATE TABLE "users"(
 	"updated_at" timestamp DEFAULT NULL,
 	"dp_id" int,
 	"trash" boolean DEFAULT false,
+	"is_confirmed" boolean NOT NULL DEFAULT false,
+	"confirmed_at" timestamp DEFAULT NULL,
 	FOREIGN KEY("dp_id") references "media"("id") ON DELETE
 	SET NULL
 );
@@ -175,7 +177,7 @@ CREATE INDEX ON "users" ("phone");
 
 ---- todo: add trigger for completed at time when status is completed ----
 
--- trigger for creating a row in 'users_settings' table when new row is inserted in setting  
+-- trigger for creating a row in 'users_settings' table when new row is inserted in 'users' table  
 CREATE OR REPLACE FUNCTION create_user_settings() RETURNS trigger AS $$  
 BEGIN  
 	INSERT INTO "users_settings" (user_id) 
