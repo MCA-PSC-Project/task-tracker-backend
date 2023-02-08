@@ -142,6 +142,9 @@ class Event(Resource):
         try:
             cursor = main.db_conn.cursor()
             cursor.execute(DELETE_EVENT, (event_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: delete row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')

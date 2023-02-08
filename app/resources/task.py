@@ -136,6 +136,9 @@ class Task(Resource):
             # app.logger.debug("cursor object: %s", cursor)
 
             cursor.execute(DELETE_TASK, (task_id, user_id,))
+            # app.logger.debug("row_counts= %s", cursor.rowcount)
+            if cursor.rowcount != 1:
+                abort(400, 'Bad Request: delete row error')
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
