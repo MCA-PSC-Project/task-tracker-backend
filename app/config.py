@@ -14,6 +14,17 @@ class Config(object):
     if DATABASE_URI == None:
         DATABASE_URI = os.getenv("LOCAL_DATABASE_URL", "Not found")
 
+    EMAIL_SECURITY_PASSWORD_SALT = os.getenv('EMAIL_SECURITY_PASSWORD_SALT')
+    # Mail Settings
+    MAIL_DEFAULT_SENDER = "noreply@tasktracker.com"
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 465
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_DEBUG = False
+    MAIL_USERNAME = os.getenv("EMAIL_USER")
+    MAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""

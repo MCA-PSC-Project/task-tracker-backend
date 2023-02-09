@@ -2,10 +2,11 @@ import psycopg2
 from flask import Flask, request
 from flask_restful import Api
 import flask_jwt_extended
+import flask_mail
 
 # local imports
 from app.config import app_config
-from app.resources.auth import Register, Login, RefreshToken
+from app.resources.auth import Register, Login, RefreshToken, ConfirmEmail
 from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPassword
 from app.resources.list import List
 from app.resources.event import Event
@@ -26,6 +27,7 @@ import app.main as main
 
 # db_conn=None
 
+
 def create_app(config_name):
     app = Flask(__name__)
     api = Api(app)
@@ -44,11 +46,15 @@ def create_app(config_name):
         app.logger.fatal('Database connection error')
     main.db_conn.autocommit = True
 
-    main.jwt = flask_jwt_extended.JWTManager(app)
+    jwt = flask_jwt_extended.JWTManager(app)
+    mail = flask_mail.Mail(app)
+
+    # Endpoints
 
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
     api.add_resource(RefreshToken, '/auth/refresh')
+    api.add_resource(ConfirmEmail, '/confirm/<token>"')
 
     api.add_resource(UserProfile, '/users/profile')
 

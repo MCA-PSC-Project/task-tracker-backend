@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta, timezone
-from flask import request, abort, jsonify
+from flask import flash, redirect, render_template, request, abort, jsonify, url_for
 from flask_restful import Resource
 import flask_jwt_extended as f_jwt
 import psycopg2
 import app.main as main
 import bcrypt
 from flask import current_app as app
+from app.email_token import generate_email_token, confirm_email_token
+from app.mail import send_email
 
 
 class Register(Resource):
@@ -64,7 +66,18 @@ class Register(Resource):
         finally:
             cursor.close()
 
-        # todo: generate token pair
+        # generate for sending token in email for email confirmation
+        generated_email_token = generate_email_token(email)
+        app.logger.debug("Generated email token= %s", generate_email_token)
+        
+        # send email
+        # confirm_url = url_for("accounts.confirm_email", token=generate_email_token, _external=True)
+        confirm_url = url_for("/confirm", token=generate_email_token, _external=True)
+        confirm_email_html_page = render_template(
+            "templates/confirm_email.html", confirm_url=confirm_url)
+        subject = "Please confirm your email"
+        send_email(email, subject, confirm_email_html_page)
+        app.logger.debug("Email sent successfully!")
 
         # when authenticated, return a fresh access token and a refresh token
         # app.logger.debug(f_jwt)
@@ -130,3 +143,58 @@ class RefreshToken(Resource):
         new_token = f_jwt.create_access_token(
             identity=current_user_id, fresh=False)
         return {'access_token': new_token}, 200
+
+
+class ConfirmEmail(Resource):
+    @f_jwt.jwt_required()
+    def get(self, token):
+        try:
+            email = confirm_email_token(token)
+        except:
+            flash('The confirmation link is invalid or has expired.', 'danger')
+
+        # check if user of given email already is confirmed or not
+        GET_USER = 'SELECT id, is_confirmed FROM users WHERE email= %s'
+        try:
+            # declare a cursor object from the connection
+            cursor = main.db_conn.cursor()
+            # app.logger.debug("cursor object: %s", cursor)
+
+            cursor.execute(GET_USER, (email,))
+            row = cursor.fetchone()
+            if row is None:
+                abort(400, 'Bad Request: User not found')
+            else:
+                user_id = row[0]
+                is_confirmed = row[1]
+        except (Exception, psycopg2.Error) as err:
+            app.logger.debug(err)
+            abort(400, 'Bad Request')
+        finally:
+            cursor.close()
+
+        if is_confirmed:
+            flash('Account already confirmed. Please login.', 'success')
+        else:
+            is_confirmed = True
+            current_time = datetime.now()
+            # app.logger.debug("cur time : %s", current_time)
+
+            UPDATE_CONFIRM_USER = 'UPDATE users SET is_confirmed= %s, confirmed_at= %s WHERE id= %s'
+
+            # catch exception for invalid SQL statement
+            try:
+                # declare a cursor object from the connection
+                cursor = main.db_conn.cursor()
+                # app.logger.debug("cursor object: %s", cursor)
+
+                cursor.execute(
+                    UPDATE_CONFIRM_USER, (is_confirmed ,current_time, user_id,))
+            except (Exception, psycopg2.Error) as err:
+                app.logger.debug(err)
+                abort(400, 'Bad Request')
+            finally:
+                cursor.close()
+
+            flash('You have confirmed your account. Thanks!', 'success')
+        return redirect(url_for('main.home'))

@@ -5,3 +5,5 @@ flask-jwt-extended
 gunicorn
 flask-restful
 bcrypt
+itsdangerous
+Flask-Mail
