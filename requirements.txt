@@ -1,9 +1,9 @@
-flask
 python-dotenv
-psycopg2-binary
-flask-jwt-extended
-gunicorn
+flask
 flask-restful
-bcrypt
+flask-jwt-extended
+flask-mail
 itsdangerous
-Flask-Mail
+psycopg2-binary
+bcrypt
+gunicorn

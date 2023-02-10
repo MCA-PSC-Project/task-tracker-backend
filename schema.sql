@@ -43,8 +43,8 @@ CREATE TABLE "users"(
 	"updated_at" timestamp DEFAULT NULL,
 	"dp_id" int,
 	"trash" boolean DEFAULT false,
-	"is_confirmed" boolean NOT NULL DEFAULT false,
-	"confirmed_at" timestamp DEFAULT NULL,
+	"is_verified" boolean NOT NULL DEFAULT false,
+	"verified_at" timestamp DEFAULT NULL,
 	FOREIGN KEY("dp_id") references "media"("id") ON DELETE
 	SET NULL
 );

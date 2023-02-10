@@ -6,7 +6,7 @@ import flask_mail
 
 # local imports
 from app.config import app_config
-from app.resources.auth import Register, Login, RefreshToken, ConfirmEmail
+from app.resources.auth import Register, Login, RefreshToken, VerifyEmail
 from app.resources.user import UserProfile, ResetEmail, ResetPhone, ResetPassword
 from app.resources.list import List
 from app.resources.event import Event
@@ -54,7 +54,7 @@ def create_app(config_name):
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
     api.add_resource(RefreshToken, '/auth/refresh')
-    api.add_resource(ConfirmEmail, '/auth/confirm-email/<token>')
+    api.add_resource(VerifyEmail, '/auth/verify-email/<token>')
 
     api.add_resource(UserProfile, '/users/profile')
 
