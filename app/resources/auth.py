@@ -68,12 +68,12 @@ class Register(Resource):
 
         # generate for sending token in email for email confirmation
         generated_email_token = generate_email_token(email)
-        app.logger.debug("Generated email token= %s", generate_email_token)
+        app.logger.debug("Generated email token= %s", generated_email_token)
 
         # send email
         # confirm_url = url_for("accounts.confirm_email", token=generate_email_token, _external=True)
         confirm_url = url_for(
-            "confirmemail", token=generate_email_token, _external=True)
+            "confirmemail", token=generated_email_token, _external=True)
         app.logger.debug("confirm url= %s", confirm_url)
         confirm_email_html_page = render_template(
             "confirm_email.html", confirm_url=confirm_url)
@@ -90,7 +90,7 @@ class Register(Resource):
         #     'access_token': access_token,
         #     'refresh_token': refresh_token
         # }, 201
-        return "confirmation Email sent successfully!", 201
+        return f"confirmation Email sent to {email} successfully!", 201
 
 
 class Login(Resource):
@@ -103,7 +103,7 @@ class Login(Resource):
             abort(400, 'Bad Request')
 
         # check if user of given email already exists
-        GET_USER = 'SELECT id, password FROM users WHERE email= %s'
+        GET_USER = 'SELECT id, password, is_confirmed FROM users WHERE email= %s'
         try:
             # declare a cursor object from the connection
             cursor = main.db_conn.cursor()
@@ -116,6 +116,7 @@ class Login(Resource):
             else:
                 user_id = row[0]
                 hashed_password = row[1]
+                is_confirmed = row[2]
         except (Exception, psycopg2.Error) as err:
             app.logger.debug(err)
             abort(400, 'Bad Request')
@@ -126,15 +127,30 @@ class Login(Resource):
         if (bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')) == False):
             abort(400, 'Email or password not correct')
 
-        # todo: generate token pair
-        access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
-        refresh_token = f_jwt.create_refresh_token(user_id)
-        return {
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }, 202
-        return {"message": "Status accepted"}, 202
+        if is_confirmed:
+            access_token = f_jwt.create_access_token(
+                identity=user_id, fresh=True)
+            refresh_token = f_jwt.create_refresh_token(user_id)
+            return {
+                'access_token': access_token,
+                'refresh_token': refresh_token
+            }, 202
+        else:
+            # generate for sending token in email for email confirmation
+            generated_email_token = generate_email_token(email)
+            app.logger.debug("Generated email token= %s", generated_email_token)
 
+            # send email
+            # confirm_url = url_for("accounts.confirm_email", token=generate_email_token, _external=True)
+            confirm_url = url_for(
+                "confirmemail", token=generated_email_token, _external=True)
+            app.logger.debug("confirm url= %s", confirm_url)
+            confirm_email_html_page = render_template(
+                "confirm_email.html", confirm_url=confirm_url)
+            subject = "Please confirm your email"
+            send_email(email, subject, confirm_email_html_page)
+            app.logger.debug("Email sent successfully!")
+            return f"confirmation Email sent to {email} successfully!", 201
 
 class RefreshToken(Resource):
     @f_jwt.jwt_required(refresh=True)
@@ -149,14 +165,14 @@ class RefreshToken(Resource):
 
 
 class ConfirmEmail(Resource):
-    @f_jwt.jwt_required()
     def get(self, token):
+        app.logger.debug("confirm email called")
         try:
             email = confirm_email_token(token)
         except:
             flash('The confirmation link is invalid or has expired.', 'danger')
 
-        # check if user of given email already is confirmed or not
+        # check if user of given email is confirmed or not
         GET_USER = 'SELECT id, is_confirmed FROM users WHERE email= %s'
         try:
             # declare a cursor object from the connection
@@ -200,4 +216,8 @@ class ConfirmEmail(Resource):
                 cursor.close()
 
             flash('You have confirmed your account. Thanks!', 'success')
-        return redirect(url_for('main.home'))
+        # return redirect(url_for('main.home'))
+        # todo : pass here homepage url for task tracker frontend
+        redirect_url = "homepage url for task tracker frontend"
+        # return redirect(redirect_url)
+        return f"redirect url= {redirect_url}", 200

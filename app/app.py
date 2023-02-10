@@ -54,7 +54,7 @@ def create_app(config_name):
     api.add_resource(Register, '/auth/register')
     api.add_resource(Login, '/auth/login')
     api.add_resource(RefreshToken, '/auth/refresh')
-    api.add_resource(ConfirmEmail, '/confirm/<token>"')
+    api.add_resource(ConfirmEmail, '/auth/confirm-email/<token>')
 
     api.add_resource(UserProfile, '/users/profile')
 
