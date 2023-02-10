@@ -7,7 +7,7 @@ class Config(object):
     DEBUG = False
     CSRF_ENABLED = True
     # gets variables from environment
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(days=30)
     DATABASE_URI = os.getenv("DATABASE_URL")

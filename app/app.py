@@ -37,7 +37,7 @@ def create_app(config_name):
 
     app.logger.debug(app_config[config_name])
     app.logger.debug('DATABASE_URI=%s ' % app.config['DATABASE_URI'])
-    app.logger.debug('JWT_SECRET_KEY=%s ' % app.config['JWT_SECRET_KEY'])
+    app.logger.debug('SECRET_KEY=%s ' % app.config['SECRET_KEY'])
 
     # global db_conn
     main.db_conn = psycopg2.connect(app.config['DATABASE_URI'])
@@ -47,7 +47,7 @@ def create_app(config_name):
     main.db_conn.autocommit = True
 
     jwt = flask_jwt_extended.JWTManager(app)
-    mail = flask_mail.Mail(app)
+    main.mail = flask_mail.Mail(app)
 
     # Endpoints
 

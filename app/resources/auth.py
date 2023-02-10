@@ -48,7 +48,7 @@ class Register(Resource):
             password.encode('utf-8'), bcrypt.gensalt())
         hashed_password = hashed_password.decode('utf-8')
 
-        REGISTER_USER = '''INSERT INTO users(name, email, phone, password, dob, gender, added_at) 
+        REGISTER_USER = '''INSERT INTO users(name, email, phone, password, dob, gender, added_at)
         VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING id'''
 
         # catch exception for invalid SQL statement
@@ -69,25 +69,28 @@ class Register(Resource):
         # generate for sending token in email for email confirmation
         generated_email_token = generate_email_token(email)
         app.logger.debug("Generated email token= %s", generate_email_token)
-        
+
         # send email
         # confirm_url = url_for("accounts.confirm_email", token=generate_email_token, _external=True)
-        confirm_url = url_for("/confirm", token=generate_email_token, _external=True)
+        confirm_url = url_for(
+            "confirmemail", token=generate_email_token, _external=True)
+        app.logger.debug("confirm url= %s", confirm_url)
         confirm_email_html_page = render_template(
-            "templates/confirm_email.html", confirm_url=confirm_url)
+            "confirm_email.html", confirm_url=confirm_url)
         subject = "Please confirm your email"
         send_email(email, subject, confirm_email_html_page)
         app.logger.debug("Email sent successfully!")
 
         # when authenticated, return a fresh access token and a refresh token
         # app.logger.debug(f_jwt)
-        access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
-        refresh_token = f_jwt.create_refresh_token(user_id)
-        return {
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }, 201
-        # return response, 201
+
+        # access_token = f_jwt.create_access_token(identity=user_id, fresh=True)
+        # refresh_token = f_jwt.create_refresh_token(user_id)
+        # return {
+        #     'access_token': access_token,
+        #     'refresh_token': refresh_token
+        # }, 201
+        return "confirmation Email sent successfully!", 201
 
 
 class Login(Resource):
@@ -189,7 +192,7 @@ class ConfirmEmail(Resource):
                 # app.logger.debug("cursor object: %s", cursor)
 
                 cursor.execute(
-                    UPDATE_CONFIRM_USER, (is_confirmed ,current_time, user_id,))
+                    UPDATE_CONFIRM_USER, (is_confirmed, current_time, user_id,))
             except (Exception, psycopg2.Error) as err:
                 app.logger.debug(err)
                 abort(400, 'Bad Request')
